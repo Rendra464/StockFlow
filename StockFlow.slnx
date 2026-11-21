@@ -1,4 +1,8 @@
 <Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".env" />
+    <File Path=".env.example" />
+  </Folder>
   <Folder Name="/src/">
     <Project Path="src/StockFlow.Api/StockFlow.Api.csproj" />
     <Project Path="src/StockFlow.Application/StockFlow.Application.csproj" />
