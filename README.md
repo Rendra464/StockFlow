@@ -101,6 +101,7 @@ The OpenAPI document is served at `/openapi/v1.json` in Development.
 
 ## Testing
 
+* **Unit tests** (`tests/StockFlow.Domain.Tests`) cover the order status transition rules in `Order.ChangeStatus`. They need no database or Docker.
 * **Integration tests** (`tests/StockFlow.Application.Tests`) run against a real SQL Server started by Testcontainers. The container is created and removed automatically, applies the real migrations, and is separate from the development database.
 * The first run is slower because the image may need to be pulled. Docker Desktop must be running.
 
