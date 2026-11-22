@@ -130,8 +130,10 @@ public static class DbSeeder
             .SqlQueryRaw<long>("SELECT NEXT VALUE FOR OrderNumberSeq AS Value")
             .ToListAsync(ct)).Single();
 
-        await db.Database.ExecuteSqlRawAsync(
-            "ALTER SEQUENCE OrderNumberSeq RESTART WITH " + (firstNumber + count), ct);
+        #pragma warning disable EF1003
+                await db.Database.ExecuteSqlRawAsync(
+                    "ALTER SEQUENCE OrderNumberSeq RESTART WITH " + (firstNumber + count), ct);
+        #pragma warning restore EF1003
 
         var rnd = new Randomizer(3003);
         var now = DateTime.UtcNow;

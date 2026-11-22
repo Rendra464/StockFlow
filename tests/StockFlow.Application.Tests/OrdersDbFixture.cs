@@ -8,7 +8,7 @@ namespace StockFlow.Application.Tests;
 
 public class OrdersDbFixture : IAsyncLifetime
 {
-    private readonly MsSqlContainer _container = new MsSqlBuilder().Build();
+    private readonly MsSqlContainer _container = new MsSqlBuilder("mcr.microsoft.com/mssql/server:2025-latest").Build();
 
     public int BudiSantosoId { get; private set; }
 
