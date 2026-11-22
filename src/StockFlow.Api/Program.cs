@@ -1,4 +1,6 @@
 using StockFlow.Infrastructure;
+using StockFlow.Infrastructure.Persistence;
+using StockFlow.Infrastructure.Persistence.Seeding;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,6 +41,15 @@ app.MapGet("/weatherforecast", () =>
     return forecast;
 })
 .WithName("GetWeatherForecast");
+
+if (args.Length > 0 && args[0] == "seed")
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await DbSeeder.SeedReferenceDataAsync(db);
+    Console.WriteLine("Reference data seeded.");
+    return;
+}
 
 app.Run();
 
