@@ -26,10 +26,38 @@ public class GetOrdersHandler
         var pageSize = Math.Clamp(query.PageSize, 1, MaxPageSize);
         var sorts = ParseSort(query.Sort);
 
+        if (query.From is not null && query.To is not null && query.From > query.To)
+            throw new RequestValidationException("from", "'from' must not be later than 'to'.");
+
         var orders = _db.Orders.AsNoTracking();
 
         if (query.Status is not null)
             orders = orders.Where(o => o.Status == query.Status);
+
+        if (query.From is not null)
+        {
+            var from = query.From.Value.ToDateTime(TimeOnly.MinValue);
+            orders = orders.Where(o => o.CreatedAt >= from);
+        }
+
+        if (query.To is not null)
+        {
+            var toExclusive = query.To.Value.AddDays(1).ToDateTime(TimeOnly.MinValue);
+            orders = orders.Where(o => o.CreatedAt < toExclusive);
+        }
+
+        if (query.CustomerId is not null)
+            orders = orders.Where(o => o.CustomerId == query.CustomerId);
+
+        var search = query.Search?.Trim();
+        if (!string.IsNullOrEmpty(search))
+        {
+            if (search.Length > 100) search = search[..100];
+
+            orders = orders.Where(o =>
+                o.OrderNumber.StartsWith(search) ||
+                o.Customer!.Name.StartsWith(search));
+        }
 
         var totalCount = await orders.CountAsync(ct);
 

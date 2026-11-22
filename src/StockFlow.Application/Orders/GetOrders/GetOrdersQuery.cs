@@ -6,4 +6,8 @@ public record GetOrdersQuery(
     int Page = 1,
     int PageSize = 25,
     string? Sort = null,
-    OrderStatus? Status = null);
+    OrderStatus? Status = null,
+    DateOnly? From = null,
+    DateOnly? To = null,
+    int? CustomerId = null,
+    string? Search = null);
