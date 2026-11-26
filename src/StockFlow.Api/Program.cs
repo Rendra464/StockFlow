@@ -15,6 +15,21 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddInfrastructure(connectionString);
 builder.Services.AddApplication();
 
+const string FrontendCorsPolicy = "Frontend";
+
+if (builder.Environment.IsDevelopment())
+{
+    var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
+    if (allowedOrigins is null || allowedOrigins.Length == 0)
+        throw new InvalidOperationException("Configuration 'Cors:AllowedOrigins' must contain at least one origin.");
+
+    builder.Services.AddCors(options =>
+        options.AddPolicy(FrontendCorsPolicy, policy =>
+            policy.WithOrigins(allowedOrigins)
+                  .AllowAnyHeader()
+                  .AllowAnyMethod()));
+}
+
 builder.Services.ConfigureHttpJsonOptions(o =>
     o.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
@@ -47,6 +62,10 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+if (app.Environment.IsDevelopment())
+{
+    app.UseCors(FrontendCorsPolicy);
+}
 app.MapOrderEndpoints();
 
 app.Run();
