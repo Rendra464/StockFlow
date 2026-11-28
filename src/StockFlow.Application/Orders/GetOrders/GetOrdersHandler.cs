@@ -19,8 +19,7 @@ public class GetOrdersHandler
 
     public GetOrdersHandler(IAppDbContext db) => _db = db;
 
-    public async Task<PagedResult<OrderListItemDto>> HandleAsync(
-        GetOrdersQuery query, CancellationToken ct = default)
+    public async Task<PagedResult<OrderListItemDto>> HandleAsync(GetOrdersQuery query, CancellationToken ct = default)
     {
         var page = Math.Max(query.Page, 1);
         var pageSize = Math.Clamp(query.PageSize, 1, MaxPageSize);
