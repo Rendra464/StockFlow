@@ -34,7 +34,18 @@ export interface paths {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "application/json": components["schemas"]["PagedResultOfOrderListItemDto"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
                 };
             };
         };
@@ -50,8 +61,39 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        HttpValidationProblemDetails: {
+            type?: null | string;
+            title?: null | string;
+            /** Format: int32 */
+            status?: null | number | string;
+            detail?: null | string;
+            instance?: null | string;
+            errors?: {
+                [key: string]: string[];
+            };
+        };
+        OrderListItemDto: {
+            /** Format: int32 */
+            id: number | string;
+            orderNumber: string;
+            customerName: string;
+            status: components["schemas"]["OrderStatus"];
+            /** Format: double */
+            totalAmount: number | string;
+            /** Format: date-time */
+            createdAt: string;
+        };
         /** @enum {unknown} */
-        OrderStatus: "Pending" | "Paid" | "Processing" | "Shipped" | "Completed" | "Cancelled" | "Expired" | null;
+        OrderStatus: "Pending" | "Paid" | "Processing" | "Shipped" | "Completed" | "Cancelled" | "Expired";
+        PagedResultOfOrderListItemDto: {
+            items: components["schemas"]["OrderListItemDto"][];
+            /** Format: int32 */
+            totalCount: number | string;
+            /** Format: int32 */
+            page: number | string;
+            /** Format: int32 */
+            pageSize: number | string;
+        };
     };
     responses: never;
     parameters: never;
