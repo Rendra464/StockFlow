@@ -1,5 +1,11 @@
+
 import { flexRender, type Table } from "@tanstack/react-table";
-import { AlertCircle, ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
+import {
+  AlertCircle,
+  ArrowDown,
+  ArrowUp,
+  ArrowUpDown,
+} from "lucide-react";
 import type { OrderRow } from "./ordersQuery";
 
 type Props = {
@@ -8,20 +14,68 @@ type Props = {
   isError: boolean;
 };
 
-export function OrdersTable({ table, isLoading, isError }: Props) {
+const DATE_COLUMNS = [
+  "date",
+  "orderDate",
+  "order_date",
+  "createdAt",
+  "created_at",
+  "updatedAt",
+  "updated_at",
+];
+
+function formatCell(columnId: string, value: unknown) {
+  if (value === null || value === undefined || value === "") {
+    return "-";
+  }
+
+  if (columnId === "total") {
+    const amount = Number(value);
+
+    if (!Number.isFinite(amount)) {
+      return String(value);
+    }
+
+    return amount.toLocaleString("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      maximumFractionDigits: 0,
+    });
+  }
+
+  if (DATE_COLUMNS.includes(columnId)) {
+    const date = new Date(String(value));
+
+    if (Number.isNaN(date.getTime())) {
+      return String(value);
+    }
+
+    return date.toLocaleDateString("id-ID", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      timeZone: "Asia/Jakarta",
+    });
+  }
+
+  return undefined;
+}
+
+export function OrdersTable({
+  table,
+  isLoading,
+  isError,
+}: Props) {
   const headerGroups = table.getHeaderGroups();
   const rows = table.getRowModel().rows;
 
-  const columnCount = Math.max(headerGroups[0]?.headers.length ?? 0, 1);
+  const columnCount = Math.max(
+    headerGroups[0]?.headers.length ?? 0,
+    1,
+  );
 
   const pageIndex = table.getState().pagination.pageIndex;
   const pageCount = table.getPageCount();
-
-  const getPageLabel = () => {
-    if (pageCount === 0) return "Page 0 of 0";
-
-    return `Page ${pageIndex + 1} of ${pageCount}`;
-  };
 
   if (isError) {
     return (
@@ -32,7 +86,9 @@ export function OrdersTable({ table, isLoading, isError }: Props) {
         <AlertCircle className="mt-0.5 size-4 shrink-0" />
 
         <div>
-          <p className="font-medium">Failed to load orders</p>
+          <p className="font-medium">
+            Failed to load orders
+          </p>
           <p className="mt-1 text-red-600/80 dark:text-red-400/80">
             We couldn't retrieve your orders. Please try again.
           </p>
@@ -47,26 +103,39 @@ export function OrdersTable({ table, isLoading, isError }: Props) {
         <div className="overflow-x-auto">
           <table className="w-full min-w-[640px] text-left">
             <thead className="bg-zinc-50/80 dark:bg-zinc-900/70">
-              <tr>
-                {headerGroups[0]?.headers.map((h) => (
-                  <th
-                    key={h.id}
-                    className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-zinc-500"
-                  >
-                    {flexRender(h.column.columnDef.header, h.getContext())}
-                  </th>
-                ))}
-              </tr>
+              {headerGroups.map((hg) => (
+                <tr key={hg.id}>
+                  {hg.headers.map((h) => (
+                    <th
+                      key={h.id}
+                      colSpan={h.colSpan}
+                      className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-zinc-500"
+                    >
+                      {h.isPlaceholder
+                        ? null
+                        : flexRender(
+                            h.column.columnDef.header,
+                            h.getContext(),
+                          )}
+                    </th>
+                  ))}
+                </tr>
+              ))}
             </thead>
 
             <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
               {Array.from({ length: 5 }).map((_, index) => (
                 <tr key={index} className="animate-pulse">
-                  {Array.from({ length: columnCount }).map((_, cellIndex) => (
-                    <td key={cellIndex} className="px-4 py-4">
-                      <div className="h-4 w-full max-w-36 rounded bg-zinc-200/70 dark:bg-zinc-800" />
-                    </td>
-                  ))}
+                  {Array.from({ length: columnCount }).map(
+                    (_, cellIndex) => (
+                      <td
+                        key={cellIndex}
+                        className="px-4 py-4"
+                      >
+                        <div className="h-4 w-full max-w-36 rounded bg-zinc-200/70 dark:bg-zinc-800" />
+                      </td>
+                    ),
+                  )}
                 </tr>
               ))}
             </tbody>
@@ -102,12 +171,17 @@ export function OrdersTable({ table, isLoading, isError }: Props) {
                       scope="col"
                       colSpan={h.colSpan}
                       onClick={
-                        canSort ? h.column.getToggleSortingHandler() : undefined
+                        canSort
+                          ? h.column.getToggleSortingHandler()
+                          : undefined
                       }
                       className={[
                         "px-4 py-3 text-xs font-medium uppercase tracking-wider text-zinc-500",
                         canSort
                           ? "cursor-pointer select-none hover:text-zinc-900 dark:hover:text-zinc-100"
+                          : "",
+                        h.column.id === "total"
+                          ? "text-right"
                           : "",
                       ].join(" ")}
                       aria-sort={
@@ -119,7 +193,14 @@ export function OrdersTable({ table, isLoading, isError }: Props) {
                       }
                     >
                       {h.isPlaceholder ? null : (
-                        <div className="flex items-center gap-2">
+                        <div
+                          className={[
+                            "flex items-center gap-2",
+                            h.column.id === "total"
+                              ? "justify-end"
+                              : "",
+                          ].join(" ")}
+                        >
                           <span>
                             {flexRender(
                               h.column.columnDef.header,
@@ -150,7 +231,10 @@ export function OrdersTable({ table, isLoading, isError }: Props) {
           <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
             {rows.length === 0 ? (
               <tr>
-                <td colSpan={columnCount} className="px-4 py-16 text-center">
+                <td
+                  colSpan={columnCount}
+                  className="px-4 py-16 text-center"
+                >
                   <div className="mx-auto flex max-w-sm flex-col items-center">
                     <div className="flex size-10 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-900">
                       <AlertCircle className="size-5 text-zinc-400" />
@@ -172,14 +256,41 @@ export function OrdersTable({ table, isLoading, isError }: Props) {
                   key={row.id}
                   className="transition-colors hover:bg-zinc-50/90 dark:hover:bg-zinc-900/50"
                 >
-                  {row.getVisibleCells().map((c) => (
-                    <td
-                      key={c.id}
-                      className="px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300"
-                    >
-                      {flexRender(c.column.columnDef.cell, c.getContext())}
-                    </td>
-                  ))}
+                  {row.getVisibleCells().map((c) => {
+                    const formattedValue = formatCell(
+                      c.column.id,
+                      c.getValue(),
+                    );
+
+                    const isTotal = c.column.id === "total";
+                    const isDate = DATE_COLUMNS.includes(
+                      c.column.id,
+                    );
+
+                    return (
+                      <td
+                        key={c.id}
+                        className={[
+                          "px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300",
+                          isTotal
+                            ? "text-right font-medium tabular-nums text-zinc-900 dark:text-zinc-100"
+                            : "",
+                          isDate
+                            ? "whitespace-nowrap tabular-nums"
+                            : "",
+                        ].join(" ")}
+                      >
+                        {formattedValue !== undefined ? (
+                          formattedValue
+                        ) : (
+                          flexRender(
+                            c.column.columnDef.cell,
+                            c.getContext(),
+                          )
+                        )}
+                      </td>
+                    );
+                  })}
                 </tr>
               ))
             )}
@@ -189,7 +300,7 @@ export function OrdersTable({ table, isLoading, isError }: Props) {
 
       <div className="flex flex-col gap-3 border-t border-zinc-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between dark:border-zinc-800">
         <span className="text-xs tabular-nums text-zinc-500">
-          {getPageLabel()}
+          Page {pageCount === 0 ? 0 : pageIndex + 1} of {pageCount}
         </span>
 
         <div className="flex items-center gap-2">
